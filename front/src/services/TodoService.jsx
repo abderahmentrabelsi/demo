@@ -14,4 +14,14 @@ export const TodoService = {
             throw error;
         }
     },
+
+    getTodoById: async (id) => {
+        try {
+            const response = await axios.get(`${baseURL}/todos/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching Todo by ID:", error);
+            throw error;
+        }
+    },
 };
