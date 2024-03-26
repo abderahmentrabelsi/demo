@@ -1,20 +1,23 @@
 // eslint-disable-next-line no-unused-vars
 import React from 'react';
 import PropTypes from 'prop-types';
-import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
 
-const TodoCard = ({ todo }) => (
-    <Card style={{ width: 'auto', marginBottom: 'auto' }}>
-        <Card.Body>
-            <Card.Title>{todo.title}</Card.Title>
-            <Card.Text>
-                {todo.detail}
-            </Card.Text>
-            <Button variant="primary" disabled={todo.done}>Mark as Done</Button>
-        </Card.Body>
-    </Card>
-);
+const TodoCard = ({ todo }) => {
+    // Determine the card's background color based on the todo's done status
+    console.log(todo)
+    const cardBgColor = todo.done ? 'bg-success' : 'bg-danger';
+
+    return (
+        <div className={`card text-white ${cardBgColor} mb-3`} style={{ maxWidth: '18rem' }}>
+            <div className="card-header">{todo.title}</div>
+            <div className="card-body">
+                <h5 className="card-title">Details</h5>
+                <p className="card-text">{todo.detail}</p>
+                <button className="btn btn-primary" disabled={todo.done}>Mark as Done</button>
+            </div>
+        </div>
+    );
+};
 
 TodoCard.propTypes = {
     todo: PropTypes.shape({

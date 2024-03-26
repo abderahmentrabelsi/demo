@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/cdfmlr/crud/orm"
 	"github.com/cdfmlr/crud/router"
+	"github.com/rs/cors"
+	"net/http"
 )
 
 type Todo struct {
@@ -28,27 +30,20 @@ func main() {
 		router.CrudNested[Project, Todo]("todos"),
 	)
 
-	r.Run(":8086")
+	// Setting up CORS with the "github.com/rs/cors" handler.
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"}, // This allows access from your React app domain
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"*"}, // You might want to restrict this in a production environment
+	})
+
+	// Wrap the Gin router with the CORS middleware
+	handler := c.Handler(r)
+
+	// Serve using the standard net/http server, applying the CORS middleware
+	http.ListenAndServe(":8086", handler)
+
+	// If you were using gin-gonic directly for running the server, you would need to adapt this part,
+	// as gin-gonic has its own way to handle middleware that could be leveraged instead of using `http.ListenAndServe`.
 }
-
-/*
-curl -X POST -d '{"title":"开发"}' localhost:8086/projects
-curl localhost:8086/projects
-curl -X PUT -d '{"title": "写bug"}' localhost:8086/projects/1
-curl -X POST -d '{"title":"游戏"}' localhost:8086/projects
-curl -X DELETE localhost:8086/projects/2
-
-curl -X POST -d '{"title":"personal: golang crud package"}' localhost:8086/todos
-curl localhost:8086/todos
-curl -X PUT -d '{"detail":"write a package to do CRUD automatically"}' localhost:8086/todos/1
-
-curl -X POST -d '{"ID": 1}' localhost:8086/projects/1/todos
-curl localhost:8086/projects/1/todos
-curl -X POST -d '{"title": "work: debug FooBar"}' localhost:8086/projects/1/todos
-curl -X PUT -d '{"done": true}' localhost:8086/todos/2
-curl -X DELETE localhost:8086/projects/1/todos/2
-curl 'localhost:8086/todos?filter_by=done&filter_value=1'
-curl -X DELETE localhost:8086/todos/2
-curl  localhost:8086/todos
-curl  'localhost:8086/projects?preload=Todos'
-*/
