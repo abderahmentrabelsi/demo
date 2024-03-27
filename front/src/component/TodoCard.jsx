@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 
 const TodoCard = ({ todo }) => {
-    // Determine the card's background color based on the todo's done status
     //console.log(todo)
     const navigate = useNavigate();
 
@@ -17,7 +16,7 @@ const TodoCard = ({ todo }) => {
             <div className="card-header">{todo.title}</div>
             <div className="card-body">
                 <h5 className="card-title">Details</h5>
-                <button className="bi bi-check2-circle" hidden={!todo.done}>
+                <button className="bi bi-check2-circle" hidden={todo.done}>
                 </button>
 
             </div>

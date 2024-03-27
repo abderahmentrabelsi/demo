@@ -27,9 +27,12 @@ function App() {
 
 function Home() {
     return (
-        <div>
-            <h2>Home Page</h2>
-
+        <div className="container my-5">
+            <h2>Welcome to Your To-Do List</h2>
+            <p className="mt-3 flex-start">Manage your tasks efficiently and never miss a deadline again. Get started by adding your first task.</p>
+            <Link to="/todos" className="btn btn-primary mt-3">
+                <i className="bi bi-pencil-square"></i> Tasks
+            </Link>
         </div>
     );
 }

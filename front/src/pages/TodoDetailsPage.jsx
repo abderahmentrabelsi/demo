@@ -1,6 +1,4 @@
 // src/pages/TodoDetailsPage.jsx
-
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TodoService } from '../services/TodoService';
@@ -14,7 +12,7 @@ const TodoDetailsPage = () => {
         const fetchTodoDetails = async () => {
             try {
                 const fetchedTodo = await TodoService.getTodoById(todoId);
-                setTodo(fetchedTodo);
+                setTodo(fetchedTodo); // Assuming fetchedTodo has the structure { Todo: { ... } }
             } catch (error) {
                 setError("Failed to fetch Todo details. Please try again later.");
             }
@@ -26,9 +24,14 @@ const TodoDetailsPage = () => {
     if (error) return <div>{error}</div>;
     if (!todo) return <div>Loading...</div>;
 
+    // Make sure to access the Todo object for detail and CreatedAt
+    const { Todo: todoDetails } = todo;
+
     return (
         <div>
-            <p>{todo.detail}</p>
+            <h2>Task Details</h2>
+            <p><strong>Detail:</strong> {todoDetails.detail}</p>
+            <p><strong>Created At:</strong> {new Date(todoDetails.CreatedAt).toLocaleString()}</p>
         </div>
     );
 };
