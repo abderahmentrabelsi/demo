@@ -17,7 +17,9 @@ const TodoCard = ({ todo }) => {
             <div className="card-header">{todo.title}</div>
             <div className="card-body">
                 <h5 className="card-title">Details</h5>
-                <button className="btn btn-primary" hidden={todo.done}></button>
+                <button className="bi bi-check2-circle" hidden={!todo.done}>
+                </button>
+
             </div>
         </div>
     );

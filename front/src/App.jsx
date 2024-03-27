@@ -5,6 +5,7 @@ import TodosPage from './pages/TodosPage.jsx'; // Ensure correct path
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import TodoDetailsPage from "./pages/TodoDetailsPage.jsx";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 
 
