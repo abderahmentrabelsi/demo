@@ -24,4 +24,15 @@ export const TodoService = {
             throw error;
         }
     },
+    addTodo: async (todo) => {
+        try {
+            const response = await axios.post(`${baseURL}/todos`, todo);
+            // Ensure this returns the full todo item, including any server-generated fields like ID
+            return response.data; // This should be the new todo item as returned by your API
+        } catch (error) {
+            console.error("Error adding new Todo:", error);
+            throw error;
+        }
+    },
+
 };
