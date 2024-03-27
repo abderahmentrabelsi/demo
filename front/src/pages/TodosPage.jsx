@@ -28,10 +28,13 @@ const TodosPage = () => {
     return (
         <Container>
             <h1>My Todos</h1>
+
+            <div className="todos-container">
             {error && <p>{error}</p>}
             {todos.map(todo => (
                 <TodoCard key={todo.ID} todo={todo} />
             ))}
+            </div>
         </Container>
     );
 
