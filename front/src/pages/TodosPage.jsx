@@ -56,7 +56,7 @@ const TodosPage = () => {
 
     return (
         <Container>
-            <h1 style={{ display: 'inline-block', marginRight: '10px' }}>My Todos</h1>
+            <h1 style={{ display: 'inline-block', marginRight: '1000px' }}>My Todos</h1>
             <Button variant="primary" onClick={handleModalShow} style={{ marginBottom: '10px' }}>Add</Button>
 
             <Modal show={showModal} onHide={handleModalClose}>
