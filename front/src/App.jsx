@@ -13,6 +13,8 @@ function App() {
         setIsDarkMode(!isDarkMode);
     };
 
+    
+
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.style.setProperty('--background-color', '#242424');
