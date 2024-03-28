@@ -18,6 +18,53 @@ nav {
     margin: 0;
 }
 
+
+.toggle-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 60px;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    transition: background-color 0.2s;
+}
+
+.toggle-button.dark-mode {
+    background-color: #242424;
+}
+
+.toggle-switch {
+    width: 20px;
+    height: 20px;
+    background-color: #000000;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.toggle-button.dark-mode .toggle-switch {
+    transform: translateX(30px);
+    background-color: #ffffff;
+}
+
+@media (max-width: 600px) {
+    .toggle-button {
+        top: 5px;
+        right: 5px;
+    }
+
+    .toggle-button img {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+
 .main-content {
     margin-top: 50px; /* Adjust based on actual height of your nav */
     /* other styles */

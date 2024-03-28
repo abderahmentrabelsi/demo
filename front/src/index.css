@@ -13,6 +13,37 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --background-color: #242424; /* Dark color */
+}
+
+body {
+  background-color: var(--background-color);
+}
+
+:root {
+  --background-color: #242424; /* Dark color */
+  --text-color: #ffffff; /* Light color for dark mode */
+  --text-color-dark: #000000; /* Dark color for light mode */
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background-color: #ffffff; /* Light color */
+    --text-color: var(--text-color-dark); /* Dark color for light mode */
+  }
+
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+}
+
 
 
 a {
