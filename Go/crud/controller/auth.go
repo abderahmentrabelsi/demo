@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func AuthHandler(c *gin.Context) {
@@ -32,7 +33,15 @@ func AuthCallbackHandler(c *gin.Context) {
 	token, err := config.OAuth2Config.Exchange(ctx, code)
 	if err != nil {
 		log.Printf("AuthCallbackHandler error: Failed to exchange token: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
+
+		// Specifically handle the "invalid_grant" error more gracefully
+		if strings.Contains(err.Error(), "invalid_grant") {
+			// Optionally, redirect the user to the login page or show a custom error message
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired authorization code. Please try logging in again."})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
+		}
+
 		return
 	}
 
