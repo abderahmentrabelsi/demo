@@ -72,6 +72,7 @@ func fetchUserInfo(ctx context.Context, token *oauth2.Token) (*model.User, error
 		Email     string `json:"email"`
 		FirstName string `json:"given_name"`
 		LastName  string `json:"family_name"`
+		Picture   string `json:"picture"`
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		return nil, err
@@ -82,6 +83,7 @@ func fetchUserInfo(ctx context.Context, token *oauth2.Token) (*model.User, error
 		FirstName: userInfo.FirstName,
 		LastName:  userInfo.LastName,
 		Role:      model.Employee,
+		Picture:   userInfo.Picture,
 	}, nil
 }
 
