@@ -3,12 +3,15 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/cdfmlr/crud/config"
 	model "github.com/cdfmlr/crud/model"
 	"github.com/cdfmlr/crud/orm"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
+	"gorm.io/gorm"
+	"log"
 	"net/http"
 )
 
@@ -21,35 +24,35 @@ func AuthCallbackHandler(c *gin.Context) {
 	ctx := context.Background()
 	code := c.Query("code")
 	if code == "" {
+		log.Println("AuthCallbackHandler error: Code not provided")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Code not provided"})
 		return
 	}
 
-	// Exchange the code for a token.
 	token, err := config.OAuth2Config.Exchange(ctx, code)
 	if err != nil {
+		log.Printf("AuthCallbackHandler error: Failed to exchange token: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
 		return
 	}
 
-	// Use the token to get user information from the OAuth provider.
 	user, err := fetchUserInfo(ctx, token)
 	if err != nil {
+		log.Printf("AuthCallbackHandler error: Failed to fetch user info: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
 		return
 	}
 
-	// Check if the user exists or create a new one.
 	user, err = ensureUserExists(user, token)
 	if err != nil {
+		log.Printf("AuthCallbackHandler error: Failed to ensure user exists: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to ensure user exists"})
 		return
 	}
 
-	// Generate a session token
 	sessionToken := uuid.New().String()
 
-	// In a real application, you'd now associate this sessionToken with user data in your session store
+	// Add more detailed logging or handling as necessary
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "User logged in successfully",
@@ -90,19 +93,35 @@ func fetchUserInfo(ctx context.Context, token *oauth2.Token) (*model.User, error
 func ensureUserExists(tempUser *model.User, token *oauth2.Token) (*model.User, error) {
 	var user model.User
 	result := orm.DB.Where("email = ?", tempUser.Email).First(&user)
-	if result.RowsAffected == 0 {
-		// User does not exist, create a new one
-		tempUser.AccessToken = token.AccessToken
-		tempUser.RefreshToken = token.RefreshToken
-		tempUser.TokenExpiry = token.Expiry
-		orm.DB.Create(&tempUser)
-		return tempUser, nil
+
+	// Check if the error is because the record was not found, which is an expected scenario
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// Record not found, so create a new user
+			log.Printf("User does not exist, creating a new one: %s\n", tempUser.Email)
+			tempUser.AccessToken = token.AccessToken
+			tempUser.RefreshToken = token.RefreshToken
+			tempUser.TokenExpiry = token.Expiry
+			if dbc := orm.DB.Create(&tempUser); dbc.Error != nil {
+				log.Printf("ensureUserExists error creating user: %v\n", dbc.Error)
+				return nil, dbc.Error
+			}
+			return tempUser, nil
+		} else {
+			// An actual error occurred while querying the database
+			log.Printf("ensureUserExists error: %v\n", result.Error)
+			return nil, result.Error
+		}
 	}
 
-	// User exists, update the token information
+	// If we reach here, it means the user exists, so update the user's token information
+	log.Printf("User exists, updating token info: %s\n", user.Email)
 	user.AccessToken = token.AccessToken
 	user.RefreshToken = token.RefreshToken
 	user.TokenExpiry = token.Expiry
-	orm.DB.Save(&user)
+	if dbs := orm.DB.Save(&user); dbs.Error != nil {
+		log.Printf("ensureUserExists error updating user: %v\n", dbs.Error)
+		return nil, dbs.Error
+	}
 	return &user, nil
 }
