@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="todolist" uuid="e43167e7-3be0-4de1-8ac2-81c76d580447">
+    <data-source source="LOCAL" name="todolist" uuid="61081b30-26f5-4770-9811-66da3b157764">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\MSI\Desktop\demo\Go\crud\example\todolist.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\MSI\Desktop\demo\Go\crud\todolist.db</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
       </jdbc-additional-properties>
