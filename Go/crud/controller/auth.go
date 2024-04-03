@@ -40,7 +40,7 @@ func AuthCallbackHandler(c *gin.Context) {
 	}
 
 	// Check if the user exists or create a new one.
-	user, err = ensureUserExists(user)
+	user, err = ensureUserExists(user, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to ensure user exists"})
 		return
@@ -85,14 +85,22 @@ func fetchUserInfo(ctx context.Context, token *oauth2.Token) (*model.User, error
 	}, nil
 }
 
-func ensureUserExists(tempUser *model.User) (*model.User, error) {
+func ensureUserExists(tempUser *model.User, token *oauth2.Token) (*model.User, error) {
 	var user model.User
 	result := orm.DB.Where("email = ?", tempUser.Email).First(&user)
 	if result.RowsAffected == 0 {
 		// User does not exist, create a new one
+		tempUser.AccessToken = token.AccessToken
+		tempUser.RefreshToken = token.RefreshToken
+		tempUser.TokenExpiry = token.Expiry
 		orm.DB.Create(&tempUser)
 		return tempUser, nil
 	}
-	// Optionally, update user's token information here
+
+	// User exists, update the token information
+	user.AccessToken = token.AccessToken
+	user.RefreshToken = token.RefreshToken
+	user.TokenExpiry = token.Expiry
+	orm.DB.Save(&user)
 	return &user, nil
 }
