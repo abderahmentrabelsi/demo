@@ -73,6 +73,17 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Set JWT token in a cookie
+	// Set JWT token in a cookie
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true, // The cookie is not accessible via JavaScript; helps mitigate XSS attacks
+	})
+
+	//log.Println("JWT token successfully stored in a cookie") // Log the success
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User logged in",
 		"token":   tokenString, // Return the token to the client
