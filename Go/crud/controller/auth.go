@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/cdfmlr/crud/config"
 	model "github.com/cdfmlr/crud/model"
 	"github.com/cdfmlr/crud/orm"
@@ -16,6 +17,51 @@ import (
 	"strings"
 )
 
+func isCodeUsed(ctx context.Context, code string) bool {
+	var count int64
+	var modelee model.AuthorizationCodeUsage
+	orm.DB.Model(&model.AuthorizationCodeUsage{}).Where("code = ? AND (state = ? OR state = ?)", code, "Used", "Pending").First(&modelee).Count(&count)
+	fmt.Println(code, modelee)
+	return count > int64(0)
+}
+
+// markCodeAsUsed marks the code as used in the database.
+func markCodeState(ctx context.Context, code string, state string) (bool, error) {
+	var usage model.AuthorizationCodeUsage
+	result := orm.DB.Where("code = ?", code).First(&usage)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// Create a new usage if not found
+			usage = model.AuthorizationCodeUsage{
+				Code:  code,
+				State: state,
+			}
+			if err := orm.DB.Create(&usage).Error; err != nil {
+				log.Printf("Error creating code usage in DB: %v", err)
+				return false, err
+			}
+			return true, nil // Successfully created new state
+		}
+		// Error other than not found
+		return false, result.Error
+	}
+
+	// If code is found but already marked as pending or used, return false
+	if usage.State == "Pending" || usage.State == "Used" {
+		return false, nil
+	}
+
+	// Update state if it was found and not pending/used
+	usage.State = state
+	if err := orm.DB.Save(&usage).Error; err != nil {
+		log.Printf("Error updating code state in DB: %v", err)
+		return false, err
+	}
+
+	return true, nil // Successfully updated state
+}
+
 func AuthHandler(c *gin.Context) {
 	url := config.OAuth2Config.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusTemporaryRedirect, url)
@@ -25,49 +71,47 @@ func AuthCallbackHandler(c *gin.Context) {
 	ctx := context.Background()
 	code := c.Query("code")
 	if code == "" {
-		log.Println("AuthCallbackHandler error: Code not provided")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Code not provided"})
 		return
 	}
 
 	token, err := config.OAuth2Config.Exchange(ctx, code)
 	if err != nil {
-		log.Printf("AuthCallbackHandler error: Failed to exchange token: %v\n", err)
-
-		// Specifically handle the "invalid_grant" error more gracefully
-		if strings.Contains(err.Error(), "invalid_grant") {
-			// Optionally, redirect the user to the login page or show a custom error message
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired authorization code. Please try logging in again."})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
-		}
-
+		markCodeState(ctx, code, "Invalid")
+		c.JSON(handleTokenExchangeError(err))
 		return
 	}
 
+	//	markCodeState(ctx, code, "Used")
+
 	user, err := fetchUserInfo(ctx, token)
 	if err != nil {
-		log.Printf("AuthCallbackHandler error: Failed to fetch user info: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
 		return
 	}
 
 	user, err = ensureUserExists(user, token)
 	if err != nil {
-		log.Printf("AuthCallbackHandler error: Failed to ensure user exists: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to ensure user exists"})
 		return
 	}
 
 	sessionToken := uuid.New().String()
 
-	// Add more detailed logging or handling as necessary
-
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "User logged in successfully",
 		"user":          user,
 		"session_token": sessionToken,
 	})
+}
+
+// You might need to adjust the signature of handleTokenExchangeError to return a proper response
+func handleTokenExchangeError(err error) (int, interface{}) {
+	if strings.Contains(err.Error(), "invalid_grant") {
+		return http.StatusBadRequest, gin.H{"error": "Invalid or expired authorization code. Please try logging in again."}
+	} else {
+		return http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"}
+	}
 }
 
 // fetchUserInfo uses the OAuth2 token to fetch user info from the OAuth provider.
