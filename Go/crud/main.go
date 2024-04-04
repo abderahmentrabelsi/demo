@@ -22,6 +22,7 @@ func main() {
 	router.Crud[model.Project](r, "/projects", router.CrudNested[model.Project, model.Todo]("todos"))
 
 	r.POST("/signup", controller.SignUp)
+	r.POST("/login", controller.Login)
 
 	// Setup OAuth2 routes
 
