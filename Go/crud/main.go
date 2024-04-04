@@ -20,7 +20,8 @@ func main() {
 	r := gin.Default()
 	router.Crud[model.Todo](r, "/todos")
 	router.Crud[model.Project](r, "/projects", router.CrudNested[model.Project, model.Todo]("todos"))
-	router.Crud[model.User](r, "/users")
+
+	r.POST("/signup", controller.SignUp)
 
 	// Setup OAuth2 routes
 
