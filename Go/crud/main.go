@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/cdfmlr/crud/controller"
+	"github.com/cdfmlr/crud/middleware"
+	"github.com/cdfmlr/crud/model"
 	"github.com/cdfmlr/crud/orm"
 	"github.com/cdfmlr/crud/router"
 	"github.com/gin-gonic/gin"
-	//model
-	"github.com/cdfmlr/crud/controller"
-	model "github.com/cdfmlr/crud/model"
 	"github.com/rs/cors"
 	"net/http"
 )
@@ -18,19 +18,26 @@ func main() {
 
 	// Initialize Gin router
 	r := gin.Default()
-	router.Crud[model.Todo](r, "/todos")
-	router.Crud[model.Project](r, "/projects", router.CrudNested[model.Project, model.Todo]("todos"))
 
-	r.POST("/signup", controller.SignUp)
-	r.POST("/login", controller.Login)
+	// Public routes
+	publicRoutes := r.Group("/")
+	{
+		publicRoutes.POST("/signup", controller.SignUp)
+		publicRoutes.POST("/login", controller.Login)
 
-	// Setup OAuth2 routes
+		// Setup OAuth2 routes without the AuthMiddleware
+		setupOAuth2Routes(publicRoutes)
+	}
 
-	setupOAuth2Routes(r)
+	// Protected routes with AuthMiddleware
+	protectedRoutes := r.Group("/")
+	protectedRoutes.Use(middleware.AuthMiddleware())
+	{
+		router.Crud[model.Todo](protectedRoutes, "/todos")
+		router.Crud[model.Project](protectedRoutes, "/projects", router.CrudNested[model.Project, model.Todo]("todos"))
 
-	// Existing CRUD operations setup...
-	// Note: Replace "router.NewRouter()" with "gin.Default()" based on your provided code.
-	// For example, if you have specific configurations in NewRouter(), make sure they are applied here.
+		// Add more protected routes here
+	}
 
 	// Configure and apply CORS settings
 	c := cors.New(cors.Options{
@@ -48,7 +55,7 @@ func main() {
 }
 
 // setupOAuth2Routes configures routes related to OAuth2 authentication.
-func setupOAuth2Routes(r *gin.Engine) {
+func setupOAuth2Routes(r *gin.RouterGroup) {
 	r.GET("/auth", controller.AuthHandler)
 	r.GET("/callback", controller.AuthCallbackHandler)
 }
