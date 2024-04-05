@@ -120,3 +120,6 @@ func generateToken(email string, duration time.Duration) (string, error) {
 
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
+
+//TODO if con from other browser discon
+//TODO actual browser (ip) and device
