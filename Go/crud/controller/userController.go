@@ -1,3 +1,4 @@
+// Package controller provides the HTTP handlers for the CRUD application.
 package controller
 
 import (
@@ -12,6 +13,9 @@ import (
 	"time"
 )
 
+// SignUp is a handler function that creates a new user.
+// It expects a JSON body with "Email" and "Password" fields.
+// If successful, it responds with a 200 status and a success message.
 func SignUp(c *gin.Context) {
 	var body struct {
 		Email    string `json:"Email"`
@@ -39,6 +43,9 @@ func SignUp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
 
+// LoginHandler is a handler function that authenticates a user.
+// It expects a JSON body with "Email" and "Password" fields.
+// If successful, it responds with a 200 status and access and refresh tokens.
 func LoginHandler(c *gin.Context) {
 	var body struct {
 		Email    string `json:"Email"`
@@ -84,6 +91,9 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
+// RefreshTokenHandler is a handler function that refreshes a user's access token.
+// It expects a form data with "refresh_token" field.
+// If successful, it responds with a 200 status and a new access token.
 func RefreshTokenHandler(c *gin.Context) {
 	refreshToken := c.PostForm("refresh_token")
 	userEmail, exists := store.GetEmailByRefreshToken(refreshToken)
@@ -101,6 +111,9 @@ func RefreshTokenHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"access_token": newAccessToken})
 }
 
+// LogoutHandler is a handler function that logs out a user.
+// It expects query parameters "accessToken" and "refreshToken".
+// If successful, it responds with a 200 status and a success message.
 func LogoutHandler(c *gin.Context) {
 	accessToken := c.Query("accessToken") // Changed to using query parameter for flexibility
 	refreshToken := c.Query("refreshToken")
@@ -111,6 +124,9 @@ func LogoutHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
+// generateToken is a helper function that generates a JWT token.
+// It takes an email and a duration for the token's expiration.
+// It returns the token as a string and any error encountered.
 func generateToken(email string, duration time.Duration) (string, error) {
 	exp := time.Now().Add(duration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
