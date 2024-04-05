@@ -22,8 +22,12 @@ func main() {
 	// Public routes
 	publicRoutes := r.Group("/")
 	{
-		publicRoutes.POST("/signup", controller.SignUp)
-		publicRoutes.POST("/login", controller.Login)
+		publicRoutes.POST("/signup", controller.SignUp)      // Assuming you have this handler defined
+		publicRoutes.POST("/login", controller.LoginHandler) // Updated to use new LoginHandler
+
+		// Adding refresh and logout routes
+		publicRoutes.POST("/refresh", controller.RefreshTokenHandler)
+		publicRoutes.POST("/logout", controller.LogoutHandler)
 
 		// Setup OAuth2 routes without the AuthMiddleware
 		setupOAuth2Routes(publicRoutes)
@@ -41,10 +45,10 @@ func main() {
 
 	// Configure and apply CORS settings
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"}, // Adjust according to your frontend setup
+		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"}, // Include Authorization for OAuth2 tokens
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 	})
 
 	// Wrap the router with the CORS middleware
@@ -54,8 +58,8 @@ func main() {
 	http.ListenAndServe(":8086", handler)
 }
 
-// setupOAuth2Routes configures routes related to OAuth2 authentication.
+// setupOAuth2Routes remains unchanged
 func setupOAuth2Routes(r *gin.RouterGroup) {
-	r.GET("/auth", controller.AuthHandler)
-	r.GET("/callback", controller.AuthCallbackHandler)
+	r.GET("/auth", controller.AuthHandler)             // Adjust this according to your actual AuthHandler
+	r.GET("/callback", controller.AuthCallbackHandler) // Adjust this according to your actual AuthCallbackHandler
 }
