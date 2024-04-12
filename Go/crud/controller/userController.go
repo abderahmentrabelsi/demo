@@ -101,13 +101,17 @@ func LoginHandler(c *gin.Context) {
 	var body struct {
 		Email    string `json:"Email"`
 		Password string `json:"Password"`
-		TOTP     string `json:"TOTP"` // Added TOTP field to struct
+		TOTP     string `json:"TOTP"`
 	}
 
 	if err := c.Bind(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
+	// Capture IP and Device
+	clientIP := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
 
 	var user model.User
 	result := orm.DB.Where("email = ?", body.Email).First(&user)
@@ -136,13 +140,21 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := generateToken(user.Email, 24*time.Hour) // Refresh token with a standard expiration
+	refreshToken, err := generateToken(user.Email, 24*time.Hour)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
 		return
 	}
 
-	store.SetRefreshToken(refreshToken, user.Email)
+	// Create a login history record
+	history := model.LoginHistory{
+		UserID:      user.ID,
+		LoginIP:     clientIP,
+		LoginDevice: userAgent,
+		LoginTime:   time.Now(),
+	}
+
+	orm.DB.Create(&history) // Insert the new login history record into the database
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  accessToken,
@@ -161,7 +173,7 @@ func RefreshTokenHandler(c *gin.Context) {
 		return
 	}
 
-	newAccessToken, err := generateToken(userEmail, 1*time.Minute) // Ensure short-lived for testing
+	newAccessToken, err := generateToken(userEmail, 1*time.Minute)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate new access token"})
 		return
@@ -174,7 +186,7 @@ func RefreshTokenHandler(c *gin.Context) {
 // It expects query parameters "accessToken" and "refreshToken".
 // If successful, it responds with a 200 status and a success message.
 func LogoutHandler(c *gin.Context) {
-	accessToken := c.Query("accessToken") // Changed to using query parameter for flexibility
+	accessToken := c.Query("accessToken")
 	refreshToken := c.Query("refreshToken")
 
 	store.RevokeToken(accessToken)

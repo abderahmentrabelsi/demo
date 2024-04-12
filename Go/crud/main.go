@@ -14,7 +14,7 @@ import (
 func main() {
 	// Connect to the database and register models
 	orm.ConnectDB(orm.DBDriverSqlite, "todolist.db")
-	orm.RegisterModel(model.Todo{}, model.Project{}, model.User{}, model.AuthorizationCodeUsage{})
+	orm.RegisterModel(model.Todo{}, model.Project{}, model.User{}, model.AuthorizationCodeUsage{}, model.LoginHistory{})
 
 	// Initialize Gin router
 	r := gin.Default()

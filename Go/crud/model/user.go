@@ -29,3 +29,11 @@ type User struct {
 	TOTPSecret   string    `json:"totp_secret"` // New field to store TOTP secret
 
 }
+
+type LoginHistory struct {
+	ID          uint
+	UserID      uint
+	LoginIP     string
+	LoginDevice string
+	LoginTime   time.Time
+}
