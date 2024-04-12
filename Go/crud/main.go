@@ -19,6 +19,8 @@ func main() {
 	// Initialize Gin router
 	r := gin.Default()
 
+	r.Static("/qrcodes", "./static/qrcodes")
+
 	// Public routes
 	publicRoutes := r.Group("/")
 	{

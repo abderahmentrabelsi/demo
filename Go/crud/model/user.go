@@ -26,4 +26,6 @@ type User struct {
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
 	TokenExpiry  time.Time `json:"token_expiry"`
+	TOTPSecret   string    `json:"totp_secret"` // New field to store TOTP secret
+
 }
