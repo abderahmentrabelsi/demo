@@ -22,24 +22,36 @@ func SignUp(c *gin.Context) {
 		Password string `json:"Password"`
 	}
 
+	// Bind the incoming JSON to body struct
 	if err := c.Bind(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid body"})
 		return
 	}
 
+	// Check if user already exists
+	var existingUser model.User
+	result := orm.DB.Where("email = ?", body.Email).First(&existingUser)
+	if result.Error == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		return
+	}
+
+	// Hash the password
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
 		return
 	}
 
+	// Create user if not existing
 	user := model.User{Email: body.Email, Password: string(hash)}
-	result := orm.DB.Create(&user)
+	result = orm.DB.Create(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user"})
 		return
 	}
 
+	// Respond with success message
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
 
